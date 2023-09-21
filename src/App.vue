@@ -293,8 +293,11 @@ export default {
 #app {
   display: block;
   width: 100%;
+  background-color: #494a4f !important;
 }
-
+body{
+  background-color: #494a4f !important;
+}
 .main {
   width: 90%;
   margin: 0 auto;
