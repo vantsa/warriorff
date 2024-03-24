@@ -3,11 +3,11 @@
     <div class="header">
       <div class="title has-text-centered">Vántsa BET</div>
       <div class="stats">
-        <div class="stat">Profit<br><span :class="{ 'green-text': total > 0, 'red-text': total <= 0 }">{{ total
+        <div class="stat">Profit<br><span :class="{ 'green-text': total > 0, 'red-text': total <= 0 }">{{ total.toFixed(2)
             }}</span> RON</div>
-        <div class="stat">Avg. odds<br><span>{{ avgOdds }} </span></div>
-        <div class="stat">Avg. bet<br><span>{{ avgAmount }} </span>RON</div>
-        <div class="stat">Win<br><span>{{ winRate * 100 }} </span>%</div>
+        <div class="stat">Avg. odds<br><span>{{ avgOdds.toFixed(2) }} </span></div>
+        <div class="stat">Avg. bet<br><span>{{ avgAmount.toFixed(2) }} </span>RON</div>
+        <div class="stat">Win<br><span>{{ (winRate * 100).toFixed(2) }} </span>%</div>
       </div>
 
     </div>
