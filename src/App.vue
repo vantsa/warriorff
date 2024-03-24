@@ -3,10 +3,13 @@
     <div class="header">
       <div class="title has-text-centered">Vántsa BET</div>
       <div class="stats">
-        <p>Profit: <span :class="{ 'green-text': total > 0, 'red-text': total <= 0 }">{{ total }}</span>RON</p>
-        <p>Average odds: <span>{{ avgOdds }}</span></p>
-        <p>Average bet amount: <span>{{ avgAmount }}</span>RON</p>
+        <div class="stat">Profit<br><span :class="{ 'green-text': total > 0, 'red-text': total <= 0 }">{{ total
+            }}</span> RON</div>
+        <div class="stat">Avg. odds<br><span>{{ avgOdds }} </span></div>
+        <div class="stat">Avg. bet<br><span>{{ avgAmount }} </span>RON</div>
+        <div class="stat">Win<br><span>{{ winRate * 100 }} </span>%</div>
       </div>
+
     </div>
     <div class="gomb has-text-centered">
       <button class="button is-large is-rounded mb-6 uj" @click="openModal">Add bet</button>
@@ -79,23 +82,30 @@
     </div>
     <div class="field has-addons mb-5">
       <div class="control">
-        <input class="input is-rounded is-medium" type="text" placeholder="Keresés..." v-model="searchQuery">
+        <input class="input is-rounded is-medium" type="text" placeholder="Search..." v-model="searchQuery">
       </div>
     </div>
+    <p class="totalBetNumber"><br>Toal number of bets: <b>{{ nrOfBets }}</b></p>
     <div v-for='user in filteredUsers' class="card">
       <header class="card-header">
         <p class="card-header-title is-size-4 has-text-centered">{{ user.name }}</p>
       </header>
       <div class="card-content">
         <div class="content">
-          <div class="columns is-mobile is-vcentered">
-            <div class="column has-text-left pl-5">
+          <div class="columns is-mobile is-vcentered" style="margin-left: 1rem">
+            <div class="column" style="text-align: center">
               <p><span>Tip:</span>{{ user.choice }}</p>
+            </div>
+            <div class="column" style="text-align: left">
               <p><span>Odds:</span>{{ user.odds }}</p>
             </div>
-            <div class="column has-text-right pr-5">
-              <p><span>Amount:</span>{{ user.amount }} <span>RON</span></p>
-              <p><span>Possible win:</span>{{ user.amount * user.odds }} <span>RON</span></p>
+          </div>
+          <div class="columns is-mobile is-vcentered" style="margin-left: 0.5rem">
+            <div class="column" style="text-align: center">
+              <p><span>Cost:</span>{{ user.amount }} <span>RON</span></p>
+            </div>
+            <div class="column"  style="margin-left: -2rem;">
+              <p><span>Prize:</span>{{ user.amount * user.odds }} <span>RON</span></p>
             </div>
           </div>
         </div>
@@ -130,7 +140,7 @@
               <label class="label">Sport</label>
               <div class="control">
                 <div class="select is-rounded">
-                  <select v-model="editData.selectedOption"> 
+                  <select v-model="editData.selectedOption">
                     <option selected value="Soccer">Soccer</option>
                     <option value="Basketball">Basketball</option>
                     <option value="Ice hockey">Ice hockey</option>
@@ -231,9 +241,12 @@ export default {
       id: '',
     })
     const users = ref([]);
+
     const avgOdds = ref(0);
     const avgAmount = ref(0);
     const total = ref(0);
+    const nrOfBets = ref(0);
+    const winRate = ref(0);
 
     onMounted(() => {
       onSnapshot(userCollectionRef, (querySnapshot) => {
@@ -241,6 +254,8 @@ export default {
         let oddsSum = 0;
         let amountSum = 0;
         total.value = 0;
+        nrOfBets.value = 0;
+
         querySnapshot.forEach((doc) => {
           const user = {
             id: doc.id,
@@ -261,10 +276,21 @@ export default {
         });
         users.value = fbUsers;
 
+        nrOfBets.value = users.value.length;
         avgOdds.value = oddsSum / fbUsers.length;
         avgAmount.value = amountSum / fbUsers.length;
+        CalculateWinRatio();
       })
     });
+
+    const CalculateWinRatio = () => {
+      if (nrOfBets.value === 0) {
+        winRate.value = 0;
+      } else {
+        const numberOfWins = users.value.filter(user => user.isWinner === 'WIN').length;
+        winRate.value = numberOfWins / nrOfBets.value;
+      }
+    };
 
     const filteredUsers = computed(() => {
       return users.value.filter((user) =>
@@ -383,6 +409,9 @@ export default {
       avgOdds,
       avgAmount,
       total,
+      nrOfBets,
+      winRate,
+      CalculateWinRatio,
     };
   }
 }
@@ -440,10 +469,12 @@ body {
   border: 2px solid #00FFFF;
   box-shadow: 0 0 15px 5px rgba(0, 255, 255, 0.8);
 }
-select{
+
+select {
   border: 2px solid #00FFFF;
   box-shadow: 0 0 15px 5px rgba(0, 255, 255, 0.8);
 }
+
 p span {
   font-size: 17px;
   margin-right: 10px;
@@ -456,6 +487,10 @@ p span {
 
 p {
   font-size: 24px;
+}
+
+.gomb {
+  margin-bottom: 2rem;
 }
 
 .header {
@@ -487,11 +522,17 @@ p {
 }
 
 .stats {
-  margin: 0 auto;
-  width: 40%;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  grid-gap: 10px;
 }
 
-.stats p {
+.stat {
+  text-align: center;
+  padding: 10px;
+}
+
+.stats .stat {
   color: white;
   font-size: 18px;
 }
@@ -512,6 +553,10 @@ p {
 
 }
 
+.content span {
+  font-size: 14px;
+}
+
 .card {
   width: 65%;
   margin: 0 auto;
@@ -529,7 +574,7 @@ p {
   background-color: #181818;
   width: 100%;
   border-top: 1px solid #00FFFF;
-  box-shadow: 0px 0px 15  px 5px rgba(0, 255, 255, 0.8);
+  box-shadow: 0px 0px 15 px 5px rgba(0, 255, 255, 0.8);
 
 }
 
@@ -543,6 +588,17 @@ p {
 
 .column {
   font-family: 'Tomorrow-SemiBold';
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  width: 100%;
+  margin-top: -1rem;
+}
+.column p {
+  font-size: 14px;
+}
+.column span{
+  font-size: 12px;
 }
 
 .modal-card-body {
@@ -563,9 +619,11 @@ select {
   color: #E9EBED;
   font-family: 'Tomorrow-Semibold'
 }
-.input::placeholder{
+
+.input::placeholder {
   color: #E9EBED;
 }
+
 .input,
 .select select,
 .textarea {
@@ -578,6 +636,13 @@ select {
 
 select {
   width: 150%;
+}
+
+.totalBetNumber {
+  color: white;
+  margin-top: -3rem;
+  margin-bottom: 2rem;
+  font-weight: lighter;
 }
 
 @media only screen and (max-width:1024px) {
