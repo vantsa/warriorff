@@ -120,12 +120,25 @@
         <section class="modal-card-body">
           <form @submit.prevent="editUser">
             <div class="field">
-              <label class="label">Név</label>
+              <label class="label">Matchup</label>
               <div class="control">
                 <input class="input is-rounded" type="text" v-model="editData.name" required>
               </div>
             </div>
             <!-- Ensure the edit modal uses the same fields as the v-for loop -->
+            <div class="field">
+              <label class="label">Sport</label>
+              <div class="control">
+                <div class="select is-rounded">
+                  <select v-model="editData.selectedOption"> 
+                    <option selected value="Soccer">Soccer</option>
+                    <option value="Basketball">Basketball</option>
+                    <option value="Ice hockey">Ice hockey</option>
+                    <option value="Tennis">Tennis</option>
+                  </select>
+                </div>
+              </div>
+            </div>
             <div class="field">
               <label class="label">Tip</label>
               <div class="control">
@@ -237,9 +250,10 @@ export default {
             amount: doc.data().amount,
             date: doc.data().date,
             isWinner: doc.data().isWinner,
+            selectedOption: doc.data().selectedOption,
           };
           let ifWinner = ((user.amount * user.odds) - user.amount);
-          total.value += user.isWinner === 'WIN' ? ifWinner : user.amount;
+          total.value += user.isWinner === 'WIN' ? ifWinner : (-user.amount);
           oddsSum += user.odds;
           amountSum += user.amount;
 
@@ -286,7 +300,7 @@ export default {
       const userToEdit = users.value.find((user) => user.id === userId);
       if (userToEdit) {
         editData.value.name = userToEdit.name;
-        editData.value.selectedOption = userToEdit.type;
+        editData.value.selectedOption = userToEdit.selectedOption;
         editData.value.choice = userToEdit.choice; // Changed 'choise' to 'choice'
         editData.value.odds = userToEdit.odds;
         editData.value.amount = userToEdit.amount;
@@ -420,11 +434,16 @@ body {
   text-transform: uppercase;
   font-family: 'Tomorrow-SemiBold';
   letter-spacing: 3px;
-  background-color: #ea060a;
+  background-color: #181818;
   color: #E9EBED;
   width: 40%;
+  border: 2px solid #00FFFF;
+  box-shadow: 0 0 15px 5px rgba(0, 255, 255, 0.8);
 }
-
+select{
+  border: 2px solid #00FFFF;
+  box-shadow: 0 0 15px 5px rgba(0, 255, 255, 0.8);
+}
 p span {
   font-size: 17px;
   margin-right: 10px;
@@ -448,8 +467,8 @@ p {
   letter-spacing: 1px;
   font-family: 'Tomorrow-SemiBold';
   padding: 15px;
-  color: #ea060a;
-  background-color: #E9EBED;
+  color: #E9EBED;
+  background-color: #181818;
 }
 
 .title {
@@ -490,6 +509,7 @@ p {
   display: flex;
   align-items: center;
   justify-content: center;
+
 }
 
 .card {
@@ -497,13 +517,20 @@ p {
   margin: 0 auto;
   background-color: #ea060a;
   color: #E9EBED;
+  background-color: #181818;
+  border: 5px solid #00FFFF;
+  box-shadow: 0 0 15px 5px rgba(0, 255, 255, 0.8);
+  border-radius: 5px;
   margin-bottom: 4rem;
 }
 
 .card-footer {
   color: #ea060a;
-  background-color: #E9EBED;
+  background-color: #181818;
   width: 100%;
+  border-top: 1px solid #00FFFF;
+  box-shadow: 0px 0px 15  px 5px rgba(0, 255, 255, 0.8);
+
 }
 
 .card-footer-item {
@@ -523,25 +550,30 @@ p {
 }
 
 .label {
-  color: #ea060a;
   font-family: 'Tomorrow-Semibold';
   text-align: center;
   padding-bottom: 15px;
+  color: #E9EBED;
 }
 
 .input,
 select {
-  background-color: #ea060a;
+  border: 2px solid #00FFFF;
+  box-shadow: 0 0 15px 5px rgba(0, 255, 255, 0.8);
   color: #E9EBED;
   font-family: 'Tomorrow-Semibold'
 }
-
+.input::placeholder{
+  color: #E9EBED;
+}
 .input,
 .select select,
 .textarea {
-  background-color: #ea060a;
+  background-color: #181818;
   color: #E9EBED;
   width: 110%;
+  border: 2px solid #00FFFF;
+  box-shadow: 0 0 15px 5px rgba(0, 255, 255, 0.8);
 }
 
 select {
@@ -550,7 +582,7 @@ select {
 
 @media only screen and (max-width:1024px) {
   .card {
-    width: 70%;
+    width: 80%;
   }
 }
 
@@ -561,7 +593,7 @@ select {
   }
 
   .card {
-    width: 80%;
+    width: 90%;
   }
 
   .control {
@@ -599,7 +631,7 @@ select {
   }
 
   .card {
-    width: 90%;
+    width: 95%;
   }
 }
 
