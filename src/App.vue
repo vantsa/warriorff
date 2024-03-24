@@ -85,7 +85,7 @@
         <input class="input is-rounded is-medium" type="text" placeholder="Search..." v-model="searchQuery">
       </div>
     </div>
-    <p class="totalBetNumber"><br>Toal number of bets: <b>{{ nrOfBets }}</b></p>
+    <p class="totalBetNumber"><br>Total number of bets: <b>{{ nrOfBets }}</b></p>
     <div v-for='user in filteredUsers' class="card">
       <header class="card-header">
         <p class="card-header-title is-size-4 has-text-centered">{{ user.name }}</p>
