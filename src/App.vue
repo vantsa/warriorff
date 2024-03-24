@@ -1,10 +1,15 @@
 <template>
   <div class="main">
     <div class="header">
-      <div class="title has-text-centered">Warrior Functional Fitness</div>
+      <div class="title has-text-centered">Vántsa BET</div>
+      <div class="stats">
+        <p>Profit: <span :class="{ 'green-text': total > 0, 'red-text': total <= 0 }">{{ total }}</span>RON</p>
+        <p>Average odds: <span>{{ avgOdds }}</span></p>
+        <p>Average bet amount: <span>{{ avgAmount }}</span>RON</p>
+      </div>
     </div>
     <div class="gomb has-text-centered">
-      <button class="button is-large is-rounded mb-6 uj" @click="openModal">Új bérlet</button>
+      <button class="button is-large is-rounded mb-6 uj" @click="openModal">Add bet</button>
     </div>
     <div class="modal" :class="{ 'is-active': showModal }">
       <div class="modal-background" @click="closeModal"></div>
@@ -12,31 +17,61 @@
         <section class="modal-card-body">
           <form @submit.prevent="addUser">
             <div class="field">
-              <label class="label">Név</label>
-              <div class="control">
-                <input class="input is-rounded" type="text" v-model="formData.name" required>
-              </div>
-            </div>
-            <div class="field">
-              <label class="label">Típus</label>
+              <label class="label">Sport</label>
               <div class="control">
                 <div class="select is-rounded">
                   <select v-model="formData.selectedOption">
-                    <option value="V.I.P. havi bérlet">V.I.P. havi bérlet</option>
-                    <option value="Felnőtt havi bérlet">Felnőtt havi bérlet</option>
-                    <option value="Gyerek havi bérlet">Gyerek havi bérlet</option>
+                    <option value="Soccer">Soccer</option>
+                    <option value="Basketball">Basketball</option>
+                    <option value="Ice hockey">Ice hockey</option>
+                    <option value="Tennis">Tennis</option>
                   </select>
                 </div>
               </div>
             </div>
             <div class="field">
-              <label class="label">Érvényesség kezdete</label>
+              <label class="label">Matchup</label>
+              <div class="control">
+                <input class="input is-rounded" type="text" v-model="formData.name" required>
+              </div>
+            </div>
+            <div class="field">
+              <label class="label">Your bet:</label>
+              <div class="control">
+                <input class="input is-rounded" type="text" v-model="formData.choice" required>
+              </div>
+            </div>
+            <div class="field">
+              <label class="label">Odds:</label>
+              <div class="control">
+                <input class="input is-rounded" type="number" step=".01" v-model="formData.odds" required>
+              </div>
+            </div>
+            <div class="field">
+              <label class="label">Amount:</label>
+              <div class="control">
+                <input class="input is-rounded" type="number" step=".01" v-model="formData.amount" required>
+              </div>
+            </div>
+            <div class="field">
+              <label class="label">Date</label>
               <div class="control">
                 <input class="input is-rounded" type="date" v-model="formData.date" required>
               </div>
             </div>
+            <div class="field">
+              <label class="label">Is winner</label>
+              <div class="control">
+                <div class="select is-rounded">
+                  <select v-model="formData.isWinner">
+                    <option value="WIN">Yes</option>
+                    <option value="NO">No</option>
+                  </select>
+                </div>
+              </div>
+            </div>
             <div class="gomb has-text-centered">
-              <button class="button is-success" :disabled="!formData.name">Hozzáad</button>
+              <button class="button is-success" :disabled="!formData.name">Add</button>
             </div>
           </form>
         </section>
@@ -51,81 +86,107 @@
       <header class="card-header">
         <p class="card-header-title is-size-4 has-text-centered">{{ user.name }}</p>
       </header>
-      <div class="card-content" :class="{ 'red-bg': isExpiring(user.expiringDate) }">
+      <div class="card-content">
         <div class="content">
           <div class="columns is-mobile is-vcentered">
             <div class="column has-text-left pl-5">
-              <p>{{ user.type }}</p>
+              <p><span>Tip:</span>{{ user.choice }}</p>
+              <p><span>Odds:</span>{{ user.odds }}</p>
             </div>
             <div class="column has-text-right pr-5">
-              <p>{{ user.expiringDate }}</p>
+              <p><span>Amount:</span>{{ user.amount }} <span>RON</span></p>
+              <p><span>Possible win:</span>{{ user.amount * user.odds }} <span>RON</span></p>
             </div>
           </div>
         </div>
       </div>
       <footer class="card-footer">
-        <div class="card-footer-item is-flex is-justify-content-center">
-          <button class="button is-outlined is-info" @click="openEditModal(user.id)">&#9998;</button>
-          <button class="button is-outlined is-danger ml-3" @click="openDeleteModal(user.id)">&cross;</button>
+        <div class="card-footer-item is-flex is-justify-content-space-between">
+          <p class="isWinner" :style="{ color: user.isWinner === 'WIN' ? 'green' : 'red' }">
+            {{ user.isWinner === 'WIN' ? 'WON' : 'LOST' }}
+          </p>
+          <div class="box2">
+            <button class="button is-outlined is-info" @click="openEditModal(user.id)">&#9998;</button>
+            <button class="button is-outlined is-danger ml-3" style="margin-right: 3rem"
+              @click="openDeleteModal(user.id)">&cross;</button>
+          </div>
         </div>
       </footer>
     </div>
     <!-- !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!     MODALOKAT A V-FORON KIVUL -->
     <div class="modal" :class="{ 'is-active': editModal }">
-            <div class="modal-background" @click="closeEditModal"></div>
-            <div class="modal-card">
-              <section class="modal-card-body">
-                <form @submit.prevent="editUser">
-                  <div class="field">
-                    <label class="label">Név</label>
-                    <div class="control">
-                      <input class="input is-rounded" type="text" v-model="editData.name" required>
-                    </div>
-                  </div>
-                  <div class="field">
-                    <label class="label">Típus</label>
-                    <div class="control">
-                      <div class="select is-rounded">
-                        <select v-model="editData.selectedOption">
-                          <option value='V.I.P. havi bérlet'>V.I.P. havi bérlet</option>
-                          <option value='Felnőtt havi bérlet'>Felnőtt havi bérlet</option>
-                          <option value='Gyerek havi bérlet'>Gyerek havi bérlet</option>
-                        </select>
-                      </div>
-                    </div>
-                  </div>
-                  <div class="field">
-                    <label class="label">Érvényesség kezdete</label>
-                    <div class="control">
-                      <input class="input is-rounded" type="date" v-model="editData.date" required>
-                    </div>
-                  </div>
-                  <div class="valami has-text-centered">
-                  <button class="button is-success has-text-centered" @click="updateUser()">Mentés</button>
-                  </div>
-                </form>
-              </section>
+      <div class="modal-background" @click="closeEditModal"></div>
+      <div class="modal-card">
+        <section class="modal-card-body">
+          <form @submit.prevent="editUser">
+            <div class="field">
+              <label class="label">Név</label>
+              <div class="control">
+                <input class="input is-rounded" type="text" v-model="editData.name" required>
+              </div>
             </div>
-          </div>
-          <div class="modal" :class="{ 'is-active': deleteModal }">
-            <div class="modal-background" @click="closeDeleteModal"></div>
-            <div class="modal-card has-text-centered">
-              <section class="modal-card-body">
-                <div class="field">
-                  <label class="label mb-5">Biztosan törölni szeretnéd ?</label>
+            <!-- Ensure the edit modal uses the same fields as the v-for loop -->
+            <div class="field">
+              <label class="label">Tip</label>
+              <div class="control">
+                <input class="input is-rounded" type="text" v-model="editData.choice" required>
+              </div>
+            </div>
+            <div class="field">
+              <label class="label">Odds</label>
+              <div class="control">
+                <input class="input is-rounded" type="number" step=".01" v-model="editData.odds" required>
+              </div>
+            </div>
+            <div class="field">
+              <label class="label">Amount</label>
+              <div class="control">
+                <input class="input is-rounded" type="number" step=".01" v-model="editData.amount" required>
+              </div>
+            </div>
+            <div class="field">
+              <label class="label">Date</label>
+              <div class="control">
+                <input class="input is-rounded" type="date" v-model="editData.date" required>
+              </div>
+            </div>
+            <div class="field">
+              <label class="label">Is winner</label>
+              <div class="control">
+                <div class="select is-rounded">
+                  <select v-model="editData.isWinner">
+                    <option value="WIN">Yes</option>
+                    <option value="NO">No</option>
+                  </select>
                 </div>
-                <button class="button is-success mr-5" @click="deleteUser">Igen</button>
-                <button class="button is-warning ml-5" @click="closeDeleteModal">Nem</button>
-              </section>
+              </div>
             </div>
+            <div class="valami has-text-centered">
+              <button class="button is-success has-text-centered" @click="updateUser()">Mentés</button>
+            </div>
+          </form>
+        </section>
+      </div>
+    </div>
+    <div class="modal" :class="{ 'is-active': deleteModal }">
+      <div class="modal-background" @click="closeDeleteModal"></div>
+      <div class="modal-card has-text-centered">
+        <section class="modal-card-body">
+          <div class="field">
+            <label class="label mb-5">Biztosan törölni szeretnéd ?</label>
           </div>
+          <button class="button is-success mr-5" @click="deleteUser">Igen</button>
+          <button class="button is-warning ml-5" @click="closeDeleteModal">Nem</button>
+        </section>
+      </div>
+    </div>
   </div>
 </template>
 
 <script>
 
 import { ref, onMounted, computed } from 'vue'
-import { collection, onSnapshot, addDoc, deleteDoc, doc, updateDoc} from "firebase/firestore"
+import { collection, onSnapshot, addDoc, deleteDoc, doc, updateDoc } from "firebase/firestore"
 import { db } from '@/firebase'
 
 export default {
@@ -136,41 +197,64 @@ export default {
     const userCollectionRef = collection(db, 'users');
     const searchQuery = ref('');
     const formData = ref({
+      selectedOption: 'Ice hockey',
       name: '',
-      selectedOption: 'Felnőtt havi bérlet',
+      choice: '', // Changed 'choise' to 'choice'
+      odds: 0,
+      amount: 0,
       date: new Date().toISOString().split('T')[0],
+      isWinner: 'NO'
     });
     const editData = ref({
+      selectedOption: '', // Changed 'selectedOption' to empty string
       name: '',
-      selectedOption: '',
-      date: '',
-      id: '',
+      choice: '', // Changed 'choise' to 'choice'
+      amount: 0,
+      odds: 0,
+      date: '', // Changed 'date' to empty string
+      isWinner: ''
     });
     const deleteData = ref({
       id: '',
     })
     const users = ref([]);
+    const avgOdds = ref(0);
+    const avgAmount = ref(0);
+    const total = ref(0);
 
     onMounted(() => {
       onSnapshot(userCollectionRef, (querySnapshot) => {
-        const fbUsers = []
+        const fbUsers = [];
+        let oddsSum = 0;
+        let amountSum = 0;
+        total.value = 0;
         querySnapshot.forEach((doc) => {
           const user = {
             id: doc.id,
             name: doc.data().name,
-            type: doc.data().type,
+            choice: doc.data().choice,
+            odds: doc.data().odds,
+            amount: doc.data().amount,
             date: doc.data().date,
-            expiringDate: doc.data().expiringDate,
+            isWinner: doc.data().isWinner,
           };
+          let ifWinner = ((user.amount * user.odds) - user.amount);
+          total.value += user.isWinner === 'WIN' ? ifWinner : user.amount;
+          oddsSum += user.odds;
+          amountSum += user.amount;
+
           fbUsers.push(user);
         });
         users.value = fbUsers;
+
+        avgOdds.value = oddsSum / fbUsers.length;
+        avgAmount.value = amountSum / fbUsers.length;
       })
     });
 
     const filteredUsers = computed(() => {
       return users.value.filter((user) =>
-      user.name.toLowerCase().includes(searchQuery.value.toLowerCase()))
+        user.name.toLowerCase().includes(searchQuery.value.toLowerCase()))
     })
 
     const isExpiring = (expiringDate) => {
@@ -203,7 +287,11 @@ export default {
       if (userToEdit) {
         editData.value.name = userToEdit.name;
         editData.value.selectedOption = userToEdit.type;
+        editData.value.choice = userToEdit.choice; // Changed 'choise' to 'choice'
+        editData.value.odds = userToEdit.odds;
+        editData.value.amount = userToEdit.amount;
         editData.value.date = userToEdit.date;
+        editData.value.isWinner = userToEdit.isWinner;
         editData.value.id = userToEdit.id;
       }
       console.log(editData.value);
@@ -220,11 +308,16 @@ export default {
       addDoc(userCollectionRef, {
         name: formData.value.name,
         type: formData.value.selectedOption,
+        choice: formData.value.choice, // Changed 'choise' to 'choice'
+        odds: formData.value.odds,
+        amount: formData.value.amount,
         date: formData.value.date,
         expiringDate: currentDate.toISOString().split('T')[0],
+        isWinner: formData.value.isWinner
       });
 
       formData.value.name = '';
+      formData.value.choice = ''; // Changed 'choise' to 'choice'
       formData.value.date = new Date().toISOString().split('T')[0];
       closeModal();
     };
@@ -241,9 +334,12 @@ export default {
       updateDoc(doc(userCollectionRef, editData.value.id), {
         name: editData.value.name,
         type: editData.value.selectedOption,
+        choice: editData.value.choice, // Changed 'choise' to 'choice'
+        odds: editData.value.odds,
+        amount: editData.value.amount,
         date: editData.value.date,
-        expiringDate: currentDate.toISOString().split('T')[0]
-
+        expiringDate: currentDate.toISOString().split('T')[0],
+        isWinner: editData.value.isWinner
       });
 
       closeEditModal();
@@ -270,6 +366,9 @@ export default {
       addUser,
       deleteUser,
       updateUser,
+      avgOdds,
+      avgAmount,
+      total,
     };
   }
 }
@@ -293,43 +392,64 @@ export default {
 #app {
   display: block;
   width: 100%;
-  background-color: #494a4f !important;
+  background-color: #181818 !important;
 }
-body{
-  background-color: #494a4f !important;
+
+body {
+  background-color: #181818 !important;
 }
+
 .main {
   width: 90%;
   margin: 0 auto;
 }
-.red-bg{
+
+.red-bg {
   background-color: red;
 }
+
+.green-text {
+  color: green;
+}
+
+.red-text {
+  color: red;
+}
+
 .uj {
   text-transform: uppercase;
   font-family: 'Tomorrow-SemiBold';
   letter-spacing: 3px;
-  background-color: #e0e13d;
-  color: #231F20;
+  background-color: #ea060a;
+  color: #E9EBED;
   width: 40%;
 }
-.expired-bg{
+
+p span {
+  font-size: 17px;
+  margin-right: 10px;
+  font-weight: normal;
+}
+
+.expired-bg {
   background-color: red;
 }
+
 p {
-  font-size: 20px;
+  font-size: 24px;
 }
 
 .header {
   margin-bottom: 5rem;
 }
+
 .card-header-title {
   display: block;
   letter-spacing: 1px;
   font-family: 'Tomorrow-SemiBold';
   padding: 15px;
-  color: #e0e13d;
-  background-color: #231F20;
+  color: #ea060a;
+  background-color: #E9EBED;
 }
 
 .title {
@@ -337,8 +457,29 @@ p {
   text-transform: uppercase;
   letter-spacing: 5px;
   font-size: 3.5rem;
-  color: white;
+  color: #E9EBED;
   margin-top: 4rem;
+}
+
+.isWinner {
+  font-weight: bold;
+  font-size: 30px;
+  margin-left: 3rem;
+}
+
+.stats {
+  margin: 0 auto;
+  width: 40%;
+}
+
+.stats p {
+  color: white;
+  font-size: 18px;
+}
+
+.stats span {
+  font-weight: bold;
+  font-size: 24px;
 }
 
 .control {
@@ -352,16 +493,21 @@ p {
 }
 
 .card {
-  width: 50%;
+  width: 65%;
   margin: 0 auto;
-  background-color: #e0e13d;
-  color: #231F20;
+  background-color: #ea060a;
+  color: #E9EBED;
   margin-bottom: 4rem;
 }
 
 .card-footer {
-  color: #e0e13d;
-  background-color: #231F20;
+  color: #ea060a;
+  background-color: #E9EBED;
+  width: 100%;
+}
+
+.card-footer-item {
+  width: 80%;
 }
 
 .card-footer button {
@@ -373,11 +519,11 @@ p {
 }
 
 .modal-card-body {
-  background-color: #231F20;
+  background-color: #181818;
 }
 
 .label {
-  color: #e0e13d;
+  color: #ea060a;
   font-family: 'Tomorrow-Semibold';
   text-align: center;
   padding-bottom: 15px;
@@ -385,98 +531,125 @@ p {
 
 .input,
 select {
-  background-color: #e0e13d;
-  color: #231F20;
+  background-color: #ea060a;
+  color: #E9EBED;
   font-family: 'Tomorrow-Semibold'
 }
-.input, .select select, .textarea
-{
-  background-color: #e0e13d;
-  color: #231F20;
+
+.input,
+.select select,
+.textarea {
+  background-color: #ea060a;
+  color: #E9EBED;
   width: 110%;
 }
+
 select {
   width: 150%;
 }
-@media only screen and (max-width:1024px){
-  .card{
+
+@media only screen and (max-width:1024px) {
+  .card {
     width: 70%;
   }
 }
-@media only screen and (max-width: 895px){
-  .header{
+
+@media only screen and (max-width: 895px) {
+  .header {
     margin-top: -5%;
     margin-bottom: 4rem;
   }
-  .card{
+
+  .card {
     width: 80%;
   }
-  .control{
+
+  .control {
     margin-bottom: 3rem;
   }
 }
+
 @media only screen and (max-width: 768px) {
-  .uj, .control{
+
+  .uj,
+  .control {
     width: 60%
   }
-  .card-header-title{
+
+  .card-header-title {
     font-size: 1.2rem !important;
   }
-  p{
+
+  p {
     font-size: 1rem !important;
   }
-  .card-footer .button{
+
+  .card-footer .button {
     font-size: 0.9rem !important;
   }
-  .field .control{
+
+  .field .control {
     margin-bottom: 1.2rem;
   }
 }
+
 @media only screen and (max-width: 650px) {
-  p{
+  p {
     text-align: center;
   }
-  .card{
+
+  .card {
     width: 90%;
   }
 }
-@media only screen and (max-width: 565px){
-  #app{
+
+@media only screen and (max-width: 565px) {
+  #app {
     padding: 20px !important;
   }
-  .title{
+
+  .title {
     font-size: 2.5rem;
   }
-  .header{
+
+  .header {
     margin-top: -15%;
   }
-  .uj, .control{
+
+  .uj,
+  .control {
     width: 90%;
     font-size: 2rem;
   }
-  .card-header-title{
+
+  .card-header-title {
     font-size: 1.1rem !important;
   }
-  p{
+
+  p {
     font-size: 0.9rem !important;
   }
-  select{
+
+  select {
     width: 100%;
   }
-  .input, .select select, .textarea
-  {
+
+  .input,
+  .select select,
+  .textarea {
     width: 100%;
-    font-size: 1rem !important; 
+    font-size: 1rem !important;
   }
-  .select:not(.is-multiple):not(.is-loading)::after 
-  {
+
+  .select:not(.is-multiple):not(.is-loading)::after {
     font-size: 1rem !important;
     margin-top: -1.6rem !important;
   }
 
 }
-@media only screen and (max-width: 425px){
-  .title{
+
+@media only screen and (max-width: 425px) {
+  .title {
     font-size: 2rem;
   }
 }
