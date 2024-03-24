@@ -6,7 +6,7 @@
         <div class="stat">Profit<br><span :class="{ 'green-text': total > 0, 'red-text': total <= 0 }">{{ total.toFixed(2)
             }}</span> RON</div>
         <div class="stat">Avg. odds<br><span>{{ avgOdds.toFixed(2) }} </span></div>
-        <div class="stat">Avg. bet<br><span>{{ avgAmount.toFixed(2) }} </span>RON</div>
+        <div class="stat">Avg. bet<br><span>{{ avgAmount.toFixed(2) }} </span> RON</div>
         <div class="stat">Win<br><span>{{ (winRate * 100).toFixed(2) }} </span>%</div>
       </div>
 
@@ -102,10 +102,10 @@
           </div>
           <div class="columns is-mobile is-vcentered" style="margin-left: 0.5rem">
             <div class="column" style="text-align: center">
-              <p><span>Cost:</span>{{ user.amount }} <span>RON</span></p>
+              <p><span>Cost:</span>{{ user.amount.toFixed(2) }} <span>RON</span></p>
             </div>
             <div class="column"  style="margin-left: -2rem;">
-              <p><span>Prize:</span>{{ user.amount * user.odds }} <span>RON</span></p>
+              <p><span>Prize:</span>{{ (user.amount * user.odds).toFixed(2) }} <span>RON</span></p>
             </div>
           </div>
         </div>
